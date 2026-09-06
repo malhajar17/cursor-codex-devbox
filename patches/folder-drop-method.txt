@@ -1,0 +1,61 @@
+_startBlockingIframeDragEvents(){
+ if(this.element)this.element.style.pointerEvents="none";
+ if(String(this.extension?.id?.value??this.extension?.id??"").toLowerCase()!=="openai.chatgpt"||this._codexFolderDropBridge||!this.window)return;
+ this._codexFolderDropBridge=true;
+ const win=this.window;
+ const explorerType="application/vnd.codex.explorer-resources+json";
+ const accepts=e=>{
+  const rect=this.element?.getBoundingClientRect();
+  return rect&&rect.width>0&&rect.height>0&&e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom&&Array.from(e.dataTransfer?.types??[]).some(t=>[explorerType,"text/uri-list","resourceurls","application/vnd.code.uri-list"].includes(t.toLowerCase()));
+ };
+ const over=e=>{if(accepts(e)){e.preventDefault();e.stopImmediatePropagation();e.dataTransfer.dropEffect="copy";}};
+ const drop=async e=>{
+  if(!accepts(e))return;
+  const location=this.extension?.location;
+  if(!location?.with)return;
+  const authority=this._environmentService.remoteAuthority||"";
+  const resources=new Map;
+  const add=(value,fsPath)=>{
+   if(typeof value!=="string")return;
+   try{
+    const uri=new URL(value);
+    const scheme=uri.protocol.slice(0,-1);
+    const sourceAuthority=decodeURIComponent(uri.host);
+    if(authority?scheme!=="vscode-remote"||sourceAuthority!==authority:scheme!=="file"||sourceAuthority&&sourceAuthority!=="localhost")return;
+    const path=decodeURIComponent(uri.pathname);
+    if(!path.startsWith("/")||/[\x00-\x1f]/.test(path))return;
+    const resource=location.with({scheme,authority:authority||"",path,query:"",fragment:""});
+    const nativePath=typeof fsPath==="string"&&fsPath&&!/[\x00-\x1f]/.test(fsPath)?fsPath:resource.fsPath||path;
+    resources.set(path,{resource,fsPath:nativePath});
+   }catch{}
+  };
+  const raw=e.dataTransfer.getData(explorerType);
+  if(raw){
+   if(raw.length>262144)return;
+   try{const entries=JSON.parse(raw);if(Array.isArray(entries))for(const entry of entries.slice(0,100))add(entry?.uri,entry?.fsPath);}catch{}
+  }else{
+   for(const type of ["ResourceURLs","application/vnd.code.uri-list","text/uri-list"]){
+    const raw=e.dataTransfer.getData(type);
+    if(!raw||raw.length>262144)continue;
+    let values;try{values=JSON.parse(raw)}catch{values=raw.split(/\r?\n/)}
+    if(Array.isArray(values))for(const value of values.slice(0,100))add(value);
+   }
+  }
+  if(!resources.size)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(this.element)this.element.style.pointerEvents="auto";
+  const files=await Promise.all(Array.from(resources.values(),async({resource,fsPath})=>{
+   try{
+    const stat=await this._fileService.stat(resource);
+    const path=fsPath.replace(/[/\\]+$/,"")||"/";
+    return {label:path.split(/[/\\]/).filter(Boolean).pop()||"/",path:stat.isDirectory&&path!=="/"?path+"/":path,fsPath:path};
+   }catch(error){this._logService.warn("[codex-folder-drop] Cannot resolve dropped resource",String(error));return null;}
+  }));
+  if(this._disposed)return;
+  this.element?.focus();
+  for(const file of files)if(file)await this.postMessage({type:"add-context-file",file},[]);
+ };
+ for(const type of ["dragenter","dragover"])win.addEventListener(type,over,true);
+ win.addEventListener("drop",drop,true);
+ this._register({dispose:()=>{for(const type of ["dragenter","dragover"])win.removeEventListener(type,over,true);win.removeEventListener("drop",drop,true);}});
+}

@@ -1,0 +1,16 @@
+{
+  "name": "codex-extension-26.901.22334-linux-x64",
+  "package_version": "26.901.22334",
+  "files": [
+    {
+      "path": "out/extension.js",
+      "original_sha256": "e8d3bb57b73a1fd316fd557859aec56e540b48de3489012d1952fa4a2e371208",
+      "replacements": [
+        {
+          "old": "if(i&&l===o){using p=n(u)}",
+          "new": "if(i&&l===o){const p=n(u);if(p!=null){const dispose=p[Symbol.dispose];if(typeof dispose!==\"function\")throw new TypeError(\"Object is not disposable\");dispose.call(p)}}"
+        }
+      ]
+    }
+  ]
+}

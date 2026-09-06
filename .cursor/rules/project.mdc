@@ -1,0 +1,9 @@
+---
+description: Codex in Cursor setup, patching, and verification instructions
+alwaysApply: true
+---
+
+Read `AGENTS.md` and follow `docs/agent-runbook.md` for all work in this repository.
+Keep local Cursor patches separate from per-devbox extension repairs.
+Use the pinned profiles and backup-aware scripts; reject unknown builds.
+Record live attachment evidence separately from code tests.

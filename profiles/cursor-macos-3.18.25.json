@@ -1,0 +1,36 @@
+{
+  "name": "cursor-macos-3.18.25",
+  "package_version": "3.18.25",
+  "files": [
+    {
+      "path": "out/vs/workbench/workbench.desktop.main.js",
+      "original_sha256": "0742e3a8832ad1ccd22300756bfa16edc2d75f0a598e2cdfab0a987c1aef3679",
+      "replacements": [
+        {
+          "old": "_startBlockingIframeDragEvents(){this.element&&(this.element.style.pointerEvents=\"none\")}",
+          "new_file": "patches/folder-drop-method.txt",
+          "strip": true
+        },
+        {
+          "old": "l=c.filter(({resource:g})=>o.hasProvider(g));",
+          "new": "l=c.filter(({resource:g})=>o.hasProvider(g));n.dataTransfer.setData(\"application/vnd.codex.explorer-resources+json\",JSON.stringify(l.map(({resource,isDirectory})=>({uri:resource.toString(),fsPath:resource.fsPath,isDirectory}))));"
+        }
+      ]
+    },
+    {
+      "path": "out/vs/workbench/workbench.glass.main.js",
+      "original_sha256": "e2af2a6468407c687188319c71125773a97dd1281607e4228b661937e909bff9",
+      "replacements": [
+        {
+          "old": "_startBlockingIframeDragEvents(){this.element&&(this.element.style.pointerEvents=\"none\")}",
+          "new_file": "patches/folder-drop-method.txt",
+          "strip": true
+        },
+        {
+          "old": "c=l.filter(({resource:p})=>o.hasProvider(p));",
+          "new": "c=l.filter(({resource:p})=>o.hasProvider(p));n.dataTransfer.setData(\"application/vnd.codex.explorer-resources+json\",JSON.stringify(c.map(({resource,isDirectory})=>({uri:resource.toString(),fsPath:resource.fsPath,isDirectory}))));"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const profile=require('../profiles/codex-extension-26.901.22334-linux-x64.json');
+const code=profile.files[0].replacements[0].new;
+const run=new Function('i','l','o','n','u',code);
+let calls=0;
+const disposable={[Symbol.dispose](){assert.equal(this,disposable);calls++}};
+run(true,1,1,()=>disposable,null);assert.equal(calls,1);
+run(false,1,1,()=>disposable,null);assert.equal(calls,1);
+run(true,1,2,()=>disposable,null);assert.equal(calls,1);
+run(true,1,1,()=>null,null);
+assert.throws(()=>run(true,1,1,()=>({}),null),TypeError);
+const error=new Error('disposal failed');
+assert.throws(()=>run(true,1,1,()=>({[Symbol.dispose](){throw error}}),null),e=>e===error);
+console.log('PASS: disposal is called once with the correct receiver; null, conditionals, and errors preserve behavior');

@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.local-state/
+backups/
+*.original
+*.bin
+*.log
+node_modules/
+.env
+.env.*
+!.env.example
