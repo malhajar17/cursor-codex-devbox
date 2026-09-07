@@ -24,7 +24,7 @@ The screenshots show Cursor 3.18.25 on macOS connected to one Linux SSH devbox, 
 - **After:** the same project has its README in the center and a full-height Codex editor pane on the right. The user performed a real drag of `src`, explicitly confirmed the attachment, and independently sent a short demo message. The capture shows the resulting folder-reference chip and Codex's acknowledgement. The screenshot-taking agent did not submit a prompt.
 - The user arranged the UI manually because macOS blocked scripted clicks. Captures used the user-approved macOS screenshot command. Local pixel tools applied opaque redactions, cropping, resizing, labels, and outlines. No generated or reconstructed UI is used.
 
-This is a comparison of the starting workspace and the configured workflow, **not an unpatched-versus-patched test**. The folder patch was present in both captures. The right-hand layout is configured per workspace; it is not automatically installed by the patch. The before image does not establish that every stock version of Codex lacks folder context.
+This is a comparison of the starting workspace and the configured workflow, **not an unpatched-versus-patched test**. The folder patch was present in both captures. These captures preceded the automatic pane companion: their layout was arranged manually. The companion now opens that layout at startup; the folder patch itself still does not move panes. The before image does not establish that every stock version of Codex lacks folder context.
 
 | Asset | Processing |
 | --- | --- |

@@ -2,7 +2,7 @@
 
 **Keep your code in Cursor. Give Codex a full-height pane beside it. Drag a folder into the conversation.**
 
-This community toolkit helps you use the Codex extension inside Cursor while working on a remote development machine over SSH. It adds folder drag-and-drop for the supported Cursor build, documents the right-hand layout, and includes a targeted repair for one extension startup error.
+This community toolkit helps you use the Codex extension inside Cursor while working on a remote development machine over SSH. It opens Codex automatically on the right, adds folder drag-and-drop for the supported Cursor build, and includes a targeted repair for one extension startup error.
 
 [Get started](#get-started) · [Installation guide](docs/setup.md) · [Give this to an agent](docs/fresh-agent-prompt.md) · [Compatibility](#compatibility)
 
@@ -18,7 +18,7 @@ This community toolkit helps you use the Codex extension inside Cursor while wor
 
 | In your workflow | What this project provides |
 | --- | --- |
-| You want Codex beside your code. | Instructions for a full-height Codex editor pane on the right, with Explorer still visible. |
+| You want Codex beside your code whenever a project opens. | A local companion extension that opens Codex automatically on the right, with Explorer still visible. |
 | You want to point Codex at a whole folder. | A patch that turns an Explorer folder drop into a folder reference in the Codex input. |
 | You switch between SSH devboxes. | Folder handling that uses the active connection and its paths, without a fixed host name or home directory. |
 | Codex fails to open on the supported remote build. | An optional repair for the specific startup syntax error described in the guide. |
@@ -29,7 +29,9 @@ A **devbox** is the remote computer where your code lives. Cursor runs on your o
 
 ### 1. Code on the left. Codex on the right.
 
-Open Codex in a right-hand editor group and keep Explorer available. You can work with your code and your agent in the same window. Set up this layout in each workspace; the folder patch does not move panes automatically.
+Install **Codex Pane for Cursor** once on your computer. When you open a trusted project, it waits for Codex to connect and opens it on the right. Existing Codex conversations are reused. No command-palette routine is needed for each workspace.
+
+Close the pane whenever you want; it stays closed for that window session. Click **Codex** in the status bar to bring it back. [Installation and settings →](docs/setup.md#automatic-codex-pane-on-the-right)
 
 ### 2. Drag a folder into Codex.
 
@@ -43,12 +45,12 @@ Drag a directory from Explorer into the Codex input. The expected result is a vi
 
 ```mermaid
 flowchart LR
-    C["Your computer<br/>Cursor + folder-drop patch"]
+    C["Your computer<br/>Cursor + automatic pane + folder-drop patch"]
     C -->|SSH window A| A["Devbox A<br/>Code + Codex extension"]
     C -->|SSH window B| B["Devbox B<br/>Code + Codex extension"]
 ```
 
-Apply the folder patch once per Cursor installation. Each devbox still needs a working Codex extension. A drop belongs to the current connection; this is not a tool for moving folders between servers.
+Install the companion and apply the folder patch once per Cursor installation. Each devbox still needs a working Codex extension. A drop belongs to the current connection; this is not a tool for moving folders between servers.
 
 ## Get started
 
@@ -59,7 +61,7 @@ Apply the folder patch once per Cursor installation. Each devbox still needs a w
 1. Check that your Cursor and extension versions match the supported profiles below.
 2. Connect to your devbox in Cursor and get the Codex extension working.
 3. Run the local patch’s `plan`, `apply`, and `verify` commands.
-4. Open Codex on the right and check that a real folder drop produces an attachment.
+4. Install the local pane companion, reopen a project, and check that Codex appears on the right and a real folder drop produces an attachment.
 
 The guide includes exact commands, backups, troubleshooting, and rollback. The optional remote startup repair is only needed when its specific error occurs.
 
@@ -70,11 +72,12 @@ The guide includes exact commands, backups, troubleshooting, and rollback. The o
 | Component | Supported profile |
 | --- | --- |
 | Cursor client | macOS, **3.18.25** |
+| Automatic pane companion | **0.1.0**, tested with Cursor **3.18.25** and Codex **26.901.22334** |
 | Optional Codex startup repair | **26.901.22334**, Linux x64 extension package |
 | Remote runtime observed with the startup error | Node **22.22.1** |
 | Toolkit requirements | Python **3.10+** and Node.js **22+**; no package installation |
 
-The scripts check the version and exact file fingerprints before applying changes. Other builds are rejected until a compatible profile is added and tested.
+The patch scripts check the version and exact file fingerprints before applying changes. Other builds are rejected until a compatible profile is added and tested. The pane companion uses editor commands and does not alter application bundles; its Codex editor route still needs verification on other extension versions.
 
 > **Before installing:** the local patch changes Cursor’s application files and triggers its modified/corrupt installation warning. The toolkit keeps that integrity check intact. Updates may overwrite the patch. Originals are backed up, and the guide includes restore commands.
 

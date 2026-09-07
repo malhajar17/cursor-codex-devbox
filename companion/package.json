@@ -1,0 +1,37 @@
+{
+  "name": "cursor-codex-pane",
+  "displayName": "Codex Pane for Cursor",
+  "description": "Open Codex automatically in a right-hand editor group, including SSH workspaces.",
+  "version": "0.1.0",
+  "publisher": "malhajar17",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/malhajar17/cursor-codex-devbox.git" },
+  "engines": { "vscode": "^1.96.0" },
+  "categories": ["Other"],
+  "main": "./extension.cjs",
+  "extensionKind": ["ui"],
+  "activationEvents": ["onStartupFinished"],
+  "capabilities": { "untrustedWorkspaces": { "supported": false } },
+  "contributes": {
+    "commands": [
+      { "command": "cursorCodex.openOnRight", "title": "Codex Pane: Open on Right" }
+    ],
+    "configuration": {
+      "title": "Codex Pane for Cursor",
+      "properties": {
+        "cursorCodex.autoOpen": {
+          "type": "boolean", "default": true,
+          "description": "Open Codex on the right once when a trusted folder or workspace starts. Closing it keeps it closed until the next window reload."
+        },
+        "cursorCodex.hideCursorAgents": {
+          "type": "boolean", "default": true,
+          "description": "Hide Cursor's separate Agents pane when opening Codex. Chats are retained."
+        },
+        "cursorCodex.fullHeight": {
+          "type": "boolean", "default": true,
+          "description": "Hide the bottom panel when opening Codex so the editor pane can use the full height. Terminal sessions are retained."
+        }
+      }
+    }
+  }
+}

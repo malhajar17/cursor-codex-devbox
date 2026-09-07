@@ -5,7 +5,7 @@ Read README.md and docs/agent-runbook.md before operating an installation.
 
 ## Scope
 
-- Maintain two independent fixes: local Cursor folder dragging and remote Codex startup compatibility.
+- Maintain three independent components: the local automatic pane companion, local Cursor folder dragging, and remote Codex startup compatibility.
 - The desired layout is Codex in a full-height right-hand editor group with Explorer available.
 - Every SSH window uses its own resource authority and paths; never hardcode a host or username.
 - The current profiles support only the versions and platform packages named in README.md.
@@ -24,7 +24,8 @@ Read README.md and docs/agent-runbook.md before operating an installation.
 
 ## Verification
 
-- Run Python patcher tests and both Node tests after code changes.
+- Run Python patcher tests, both patch-related Node tests, and `node --test tests/test-pane.cjs` after code changes. Build the companion with `python3 scripts/package_companion.py` when changing it.
+- Install the companion locally (`extensionKind: ui`), not separately on devboxes. Check a fresh SSH workspace and an existing Codex conversation; preserve tabs and do not submit test prompts.
 - Verify a supported real installation with the read-only `verify` commands and serializer check when available.
 - Unit checks and a `resolved` log entry do not establish a visible folder attachment.
 - Verify the attachment in the actual Codex composer or obtain explicit user confirmation.

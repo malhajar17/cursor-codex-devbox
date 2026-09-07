@@ -53,14 +53,49 @@ The extension is commonly under `~/.cursor-server/extensions/`, but discover it 
 
 The startup repair and local folder-drag patch are independent. Restoring one does not restore the other. An extension update may remove the startup repair or make it unnecessary.
 
-## Full-height Codex pane on the right
+## Automatic Codex pane on the right
+
+Build and install the companion **on the computer running Cursor**:
+
+```sh
+python3 scripts/package_companion.py
+cursor --install-extension dist/cursor-codex-pane-0.1.0.vsix
+```
+
+If `cursor` is not on PATH on macOS, use `/Applications/Cursor.app/Contents/Resources/app/bin/cursor` (quote the full path). You can also use **Extensions: Install from VSIX** in a local Cursor window and select the generated file. Install **Codex Pane for Cursor** locally, not in an SSH extension environment.
+
+Reopen a project or reload its window once after installing. From then on, opening a trusted folder or workspace opens Codex on the right automatically. The helper waits up to two minutes for the remote Codex commands and restored tabs, then reuses an existing Codex conversation if available. It does not send a prompt. If Codex is unavailable or takes longer to connect, click **Codex** in the status bar after it is ready.
+
+It hides Cursor's separate Agents pane and the bottom panel to give Codex the full height. Existing chats and terminal sessions are retained. Existing editor groups are preserved; a full-height rightmost group is reused, or a right-hand group is added beside a stacked layout. It does not flatten complex layouts.
+
+Closing Codex keeps it closed until that window reloads. The status bar button brings it back with one click. Change these settings in Cursor's user settings to control all its workspaces, or in workspace settings for one project:
+
+```json
+{
+  "cursorCodex.autoOpen": true,
+  "cursorCodex.hideCursorAgents": true,
+  "cursorCodex.fullHeight": true
+}
+```
+
+Set a value to `false` to disable that behavior. Leave `chatgpt.openOnStartup` off: the official setting focuses the left sidebar. Empty welcome windows and untrusted projects are skipped. The helper does not install or authenticate the official Codex extension for you.
+
+To uninstall the companion without removing the folder patch or Codex:
+
+```sh
+cursor --uninstall-extension malhajar17.cursor-codex-pane
+```
+
+You can also disable it in local Extensions. Existing tabs keep their current positions.
+
+### Manual fallback
 
 1. Run **Codex: New Codex Agent**.
 2. With that editor active, run **View: Move Editor into Right Group**.
 3. Use **Toggle Agents** if the native Cursor agents take up the right edge. This hides their pane without deleting chats.
 4. Keep Explorer open. Hide the bottom panel with **Toggle Panel** if you want the Codex pane to extend to the bottom.
 
-In the observed Cursor build, the secondary sidebar is reserved for Cursor's own agents. A right-hand editor group is the working layout for Codex. Repeat the layout steps in a new workspace if Codex appears on the left again; the folder patch does not automatically move panes. If the CODEX section is collapsed, expand it to reveal the sidebar input.
+In the observed Cursor build, the secondary sidebar is reserved for Cursor's own agents. A right-hand editor group is the working layout for Codex. Use these manual steps only when the companion is disabled or unavailable. If the CODEX section is collapsed, expand it to reveal the sidebar input.
 
 ## Verify folder dropping
 

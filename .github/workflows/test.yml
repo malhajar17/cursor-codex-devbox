@@ -16,3 +16,5 @@ jobs:
       - run: python3 -m unittest discover -s tests -v
       - run: node tests/test-bridge.cjs
       - run: node tests/test-extension-disposal.cjs
+      - run: node --test tests/test-pane.cjs
+      - run: python3 scripts/package_companion.py

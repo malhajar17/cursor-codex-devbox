@@ -2,7 +2,7 @@
 
 ## 1. Establish the target
 
-The user wants Codex inside Cursor, operating on the current SSH devbox, in a full-height pane on the right, with Explorer folder drag-and-drop. This is a local UI patch plus an optional remote extension repair, not a hosted service.
+The user wants Codex inside Cursor, operating on the current SSH devbox, automatically opening in a full-height pane on the right, with Explorer folder drag-and-drop. This consists of a local pane companion, a local folder patch, and an optional remote extension repair.
 
 Use host names, paths, and authorization already provided by the user. If no target is known, inspect the active Cursor connection and configured SSH host names through appropriate tools. Ask for the missing host only if it cannot be determined. Do not copy a previous operator's IP address or home path from examples.
 
@@ -24,9 +24,15 @@ Do not install the Linux x64 profile into a macOS, ARM, or different-version ext
 
 The observed Cursor build rejects extension view containers in its secondary sidebar because that area is reserved for Cursor agents. Repeatedly dragging the Codex sidebar there will not fix it.
 
-Open **Codex: New Codex Agent**, focus its editor, and run **View: Move Editor into Right Group**. Keep the normal project editor on the left and Explorer available. Hide the native Agents pane if it occupies the right edge. Hide the bottom panel when the user wants full height. Preserve existing tabs, drafts, and chats.
+Build the companion with `python3 scripts/package_companion.py`, then install its VSIX using the **local** Cursor CLI. See [setup](setup.md#automatic-codex-pane-on-the-right) for exact commands and settings. Its `extensionKind: ["ui"]` keeps one installation on the client for that Cursor profile's SSH windows. Do not install a copy on every devbox or add host-specific settings.
 
-A new workspace may start with Codex back in the left sidebar; the local folder patch does not apply the editor layout automatically. Repeat the layout steps for that workspace.
+The companion waits for `chatgpt.newCodexPanel` registration and two seconds without tab changes. It uses the verified `openai-codex://route/extension/panel/new` custom-editor route and `chatgpt.conversationEditor` view, or reuses an existing Codex tab's exact URI. It opens with `vscode.openWith` in a full-height rightmost group, preserving the existing layout tree. It hides other panes through idempotent close commands, not visibility toggles. No prompt is sent. The built-in `chatgpt.openOnStartup` setting targets the sidebar and is not the equivalent behavior.
+
+Startup runs once per trusted workspace session, with a two-minute connection limit. Closing the pane does not trigger a reopening loop. A **Codex** status bar button invokes `cursorCodex.openOnRight` on demand. Settings allow auto-opening, hiding Cursor Agents, and hiding the bottom panel to be disabled independently. The **Codex Pane for Cursor** Output channel records only local setup diagnostics.
+
+Verify a fresh harmless SSH workspace without invoking a Codex command, then verify an existing conversation is retained. Do not infer visible success from the helper's log alone. If porting to a new extension build, check its command registration, new-editor URI, custom-editor view type, and single-editor behavior before claiming compatibility. Public API references: [remote UI extensions](https://code.visualstudio.com/api/advanced-topics/remote-extensions) and [editor commands](https://code.visualstudio.com/api/references/commands).
+
+Manual fallback: open **Codex: New Codex Agent**, focus its editor, and run **View: Move Editor into Right Group**. Hide native Agents and the bottom panel if needed. Preserve existing tabs, drafts, and chats.
 
 If the sidebar appears empty, inspect whether its **Codex** section at the bottom of Explorer is collapsed. If the editor itself is blank, inspect extension/webview activation before changing layout again.
 
