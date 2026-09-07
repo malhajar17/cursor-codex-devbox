@@ -1,108 +1,78 @@
-# Codex in Cursor over SSH
+# Codex in Cursor, on your devbox
 
-An unofficial, version-pinned toolkit for running the Codex extension in Cursor on SSH devboxes, placing it in a full-height right-hand editor group, and attaching folders by dragging them from Explorer.
+**Keep your code in Cursor. Give Codex a full-height pane beside it. Drag a folder into the conversation.**
 
-**Agents: start with [AGENTS.md](AGENTS.md), then follow the [agent runbook](docs/agent-runbook.md).** No previous conversation or machine-specific configuration is required.
+This community toolkit helps you use the Codex extension inside Cursor while working on a remote development machine over SSH. It adds folder drag-and-drop for the supported Cursor build, documents the right-hand layout, and includes a targeted repair for one extension startup error.
 
-## What this includes
+[Get started](#get-started) · [Installation guide](docs/setup.md) · [Give this to an agent](docs/fresh-agent-prompt.md) · [Compatibility](#compatibility)
 
-- A local Cursor patch that preserves folder URIs, SSH authorities, and native paths during Explorer drags and delivers them to the Codex composer.
-- A separate compatibility repair for the known Codex extension startup failure under Cursor's Node 22 extension host.
-- Read-only planning, checksum validation, private backups, repeatable installation, and exact restoration.
-- Tests, troubleshooting notes, and a prompt you can give a fresh agent.
+## What does it add?
 
-The local drag patch applies to every SSH window opened by that Cursor installation. It contains no fixed server address, username, home path, or extension installation directory. **Each devbox still needs a working Codex extension.** This does not transfer folders between hosts or embed Codex inside Cursor's proprietary agent tabs.
-
-## Supported baseline and limits
-
-| Component | Known baseline |
+| In your workflow | What this project provides |
 | --- | --- |
-| Cursor client | macOS, 3.18.25; both desktop and glass bundles |
-| Codex extension startup repair | 26.901.22334, Linux x64 package |
-| Runtime that needed the repair | Cursor remote Node 22.22.1 |
-| Toolkit requirements | Python 3.10+ and Node.js 22+; no package installation |
+| You want Codex beside your code. | Instructions for a full-height Codex editor pane on the right, with Explorer still visible. |
+| You want to point Codex at a whole folder. | A patch that turns an Explorer folder drop into a folder reference in the Codex input. |
+| You switch between SSH devboxes. | Folder handling that uses the active connection and its paths, without a fixed host name or home directory. |
+| Codex fails to open on the supported remote build. | An optional repair for the specific startup syntax error described in the guide. |
 
-Profiles verify full original SHA-256 checksums as well as version and exact replacement anchors. Other Cursor builds, extension platforms, or extension versions are deliberately rejected until a new profile is reviewed and tested.
+A **devbox** is the remote computer where your code lives. Cursor runs on your own computer and connects to it through SSH.
 
-**Cursor reports that its installation is modified/corrupt after the local patch.** This is an expected integrity warning from changing its application bundles. The toolkit does not suppress the warning or change integrity checks. Cursor updates can overwrite the patch. Keep backups and rerun `plan` after an update; never force an old profile onto a new build.
+## See the workflow
 
-A user confirmed a real folder attachment during development on one Linux SSH devbox. The final host-independent revision passed bridge, installed-serializer, and syntax checks. Multiple live devboxes have not been tested; Windows paths are covered only by isolated tests. See [verification details](docs/verification.md).
+### 1. Code on the left. Codex on the right.
 
-## Local client setup
+Open Codex in a right-hand editor group and keep Explorer available. You can work with your code and your agent in the same window.
 
-Clone this repository and enter it. From a terminal with Python and Node available:
+### 2. Drag a folder into Codex.
 
-```sh
-python3 scripts/cursor_patch.py plan
-python3 scripts/cursor_patch.py apply
-python3 scripts/cursor_patch.py verify
+Drag a directory from Explorer into the Codex input. The expected result is a visible folder attachment, so you can refer to that directory in your next request. The patch passes a folder reference; it does not copy or upload the directory contents itself.
+
+### 3. Use the same local patch with other devboxes.
+
+```mermaid
+flowchart LR
+    C["Your computer<br/>Cursor + folder-drop patch"]
+    C -->|SSH window A| A["Devbox A<br/>Code + Codex extension"]
+    C -->|SSH window B| B["Devbox B<br/>Code + Codex extension"]
 ```
 
-The default application root is `/Applications/Cursor.app/Contents/Resources/app`. Override it with `--app-root /path/to/Cursor.app/Contents/Resources/app`. If Node is not on PATH, pass `--node /absolute/path/to/node` to `apply` and `verify`. Use your normal filesystem approval flow if Cursor's application directory requires additional write access.
+Apply the folder patch once per Cursor installation. Each devbox still needs a working Codex extension. A drop belongs to the current connection; this is not a tool for moving folders between servers.
 
-`plan` only inspects files. `apply` validates every candidate with `node --check`, saves originals and a manifest outside the repository, and then replaces the application files. It can also adopt an already-installed, byte-identical version of this patch. The backup path is printed; `--state-dir /private/backup/directory` overrides it.
+## Get started
 
-In Cursor, run **Developer: Reload Window** after applying. Restore when needed:
+**Using a coding agent?** Give it the [ready-to-copy setup prompt](docs/fresh-agent-prompt.md) and access to this repository. It will start with [AGENTS.md](AGENTS.md) and the [step-by-step runbook](docs/agent-runbook.md). No previous conversation is needed.
 
-```sh
-python3 scripts/cursor_patch.py restore
-```
+**Setting it up yourself?** Follow the [installation guide](docs/setup.md):
 
-Reload again after restoring. Use the same application root, profile, and backup directory. Restoration refuses to overwrite bundles changed by an update or another patch. Backups are retained.
+1. Check that your Cursor and extension versions match the supported profiles below.
+2. Connect to your devbox in Cursor and get the Codex extension working.
+3. Run the local patch’s `plan`, `apply`, and `verify` commands.
+4. Open Codex on the right and check that a real folder drop produces an attachment.
 
-## Setup on each SSH devbox
+The guide includes exact commands, backups, troubleshooting, and rollback. The optional remote startup repair is only needed when its specific error occurs.
 
-1. Connect using Cursor's Remote SSH extension and your existing SSH configuration.
-2. Install the official Codex extension (`openai.chatgpt`) in that SSH environment, then open Codex.
-3. If it activates normally, skip the startup repair. If commands fail, inspect the remote extension-host log before changing anything.
-4. Only for the known unsupported `using` syntax error and matching package, clone or copy this toolkit to that devbox. Run the commands below **on the devbox**, with the actual extension directory and Cursor remote Node path.
+## Compatibility
 
-```sh
-python3 scripts/extension_patch.py plan \
-  --extension-dir /path/to/openai.chatgpt-26.901.22334-linux-x64
+**This is an experimental, version-specific customization.** It is not an official Cursor or OpenAI integration, and Codex uses an editor group rather than Cursor’s native agent tabs.
 
-python3 scripts/extension_patch.py apply \
-  --extension-dir /path/to/openai.chatgpt-26.901.22334-linux-x64 \
-  --node /path/to/cursor-server/node
+| Component | Supported profile |
+| --- | --- |
+| Cursor client | macOS, **3.18.25** |
+| Optional Codex startup repair | **26.901.22334**, Linux x64 extension package |
+| Remote runtime observed with the startup error | Node **22.22.1** |
+| Toolkit requirements | Python **3.10+** and Node.js **22+**; no package installation |
 
-python3 scripts/extension_patch.py verify \
-  --extension-dir /path/to/openai.chatgpt-26.901.22334-linux-x64 \
-  --node /path/to/cursor-server/node
-```
+The scripts check the version and exact file fingerprints before applying changes. Other builds are rejected until a compatible profile is added and tested.
 
-The extension is commonly under `~/.cursor-server/extensions/`, but discover it rather than assuming a username or installation path. Use the Node executable from that connection's extension-host process/log, not an unrelated shell Node. Reload the Cursor window and confirm extension activation. `extension_patch.py restore --extension-dir ...` restores the original extension bundle; restoring also restores its original runtime compatibility requirements.
+> **Before installing:** the local patch changes Cursor’s application files and triggers its modified/corrupt installation warning. The toolkit keeps that integrity check intact. Updates may overwrite the patch. Originals are backed up, and the guide includes restore commands.
 
-The startup repair and local folder-drag patch are independent. Restoring one does not restore the other. An extension update may remove the startup repair or make it unnecessary.
+A real folder attachment was confirmed on one Linux SSH devbox during development. The final revision passed isolated multi-host tests and checks against the installed Cursor serializers; it has **not** been tested live across multiple devboxes. Read the [verification notes](docs/verification.md) for the exact scope.
 
-## Full-height Codex pane on the right
+## Go deeper
 
-1. Run **Codex: New Codex Agent**.
-2. With that editor active, run **View: Move Editor into Right Group**.
-3. Use **Toggle Agents** if the native Cursor agents take up the right edge. This hides their pane without deleting chats.
-4. Keep Explorer open. Hide the bottom panel with **Toggle Panel** if you want the Codex pane to extend to the bottom.
+- [Installation and rollback](docs/setup.md) — commands for your computer and each devbox.
+- [Agent runbook](docs/agent-runbook.md) — diagnosis, implementation details, and recovery.
+- [Fresh-agent prompt](docs/fresh-agent-prompt.md) — hand this project to another agent.
+- [Development and tests](docs/development.md) — run the checks or work on a new profile.
 
-In the observed Cursor build, the secondary sidebar is reserved for Cursor's own agents. A right-hand editor group is the working layout for Codex.
-
-## Verify folder dropping
-
-Drag a small, known directory from the active SSH Explorer into the Codex input. Confirm a visible attachment and its folder path. Test a file too. Do not submit a model request just to test attachment display.
-
-Repeat on another connected devbox to establish live multi-host coverage. A resolved path in a log proves only that stage; it does not prove an attachment appeared. See the runbook if automated dragging produces `dragstart` without `drop`.
-
-## Tests
-
-```sh
-python3 -m unittest discover -s tests -v
-node tests/test-bridge.cjs
-node tests/test-extension-disposal.cjs
-```
-
-Set `NODE_BINARY=/absolute/path/to/node` for the Python tests if necessary. The unit tests use temporary synthetic bundles and do not modify installed applications. GitHub Actions runs these checks under Node 22.
-
-To verify both serializer functions in a supported, patched Cursor installation:
-
-```sh
-node scripts/verify_serializer.cjs /Applications/Cursor.app/Contents/Resources/app
-```
-
-Only patch snippets and fingerprints are distributed. Full Cursor/Codex bundles, runtime backups, SSH details, logs, screenshots, and credentials do not belong in this repository.
+Found an unsupported version or a reproducible issue? [Open an issue](https://github.com/malhajar17/cursor-codex-devbox/issues) with your OS, versions, and a redacted error. Keep credentials, SSH configuration, and private project details out of reports.

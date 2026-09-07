@@ -20,7 +20,7 @@ Read README.md and docs/agent-runbook.md before operating an installation.
 - Never bypass Cursor integrity checks or replace its expected checksum list.
 - Never force a replacement after a version, fingerprint, or anchor mismatch.
 - Preflight all files before mutation. Keep exact restore paths; preserve user code and chats.
-- Do not commit vendor bundles, backups, logs, screenshots, absolute personal paths, or SSH configuration.
+- Do not commit vendor bundles, backups, logs, unredacted screenshots, absolute personal paths, or SSH configuration. Documentation visuals are allowed when they contain only demo content or have been reviewed for private information; follow docs/visuals.md.
 
 ## Verification
 
