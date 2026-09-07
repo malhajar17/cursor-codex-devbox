@@ -60,7 +60,7 @@ The startup repair and local folder-drag patch are independent. Restoring one do
 3. Use **Toggle Agents** if the native Cursor agents take up the right edge. This hides their pane without deleting chats.
 4. Keep Explorer open. Hide the bottom panel with **Toggle Panel** if you want the Codex pane to extend to the bottom.
 
-In the observed Cursor build, the secondary sidebar is reserved for Cursor's own agents. A right-hand editor group is the working layout for Codex.
+In the observed Cursor build, the secondary sidebar is reserved for Cursor's own agents. A right-hand editor group is the working layout for Codex. Repeat the layout steps in a new workspace if Codex appears on the left again; the folder patch does not automatically move panes. If the CODEX section is collapsed, expand it to reveal the sidebar input.
 
 ## Verify folder dropping
 

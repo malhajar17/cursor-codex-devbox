@@ -5,7 +5,8 @@ The original work used Cursor 3.18.25 on macOS, an SSH Linux x64 devbox, Codex e
 - The extension failed to activate on unsupported `using` syntax; the targeted replacement passed parsing and the extension subsequently activated.
 - Codex was opened in a full-height right-hand editor group.
 - A real user drag reached the host bridge, resolved a directory with the correct folder marker, and the user explicitly confirmed that an attachment appeared.
-- The subsequent canonical-URI revision removed home-directory inference. Both actual installed Explorer serializers and the multi-host bridge tests passed. The final revision was not confirmed live on another devbox.
+- The subsequent canonical-URI revision removed home-directory inference. Both actual installed Explorer serializers and the multi-host bridge tests passed.
+- On 7 September 2026, the installed final patch passed read-only verification of both Cursor bundles. In a clean demo project on the same Linux SSH devbox, the user performed a real folder drop and confirmed the `src` attachment. The screenshot then showed that folder reference in a submitted demo message, with Codex acknowledging it. See the [screenshots and capture notes](visuals.md). The final revision has not been confirmed live on another devbox.
 
 The repository packaging was checked with read-only planning/verification against the patched local Cursor bundles. Its installer and restoration behavior are tested against disposable synthetic bundles, including repeat application, adoption of an existing exact patch, syntax failure, checksum failure, backup tampering, partial application recovery, and injected write failure.
 

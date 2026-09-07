@@ -26,6 +26,8 @@ The observed Cursor build rejects extension view containers in its secondary sid
 
 Open **Codex: New Codex Agent**, focus its editor, and run **View: Move Editor into Right Group**. Keep the normal project editor on the left and Explorer available. Hide the native Agents pane if it occupies the right edge. Hide the bottom panel when the user wants full height. Preserve existing tabs, drafts, and chats.
 
+A new workspace may start with Codex back in the left sidebar; the local folder patch does not apply the editor layout automatically. Repeat the layout steps for that workspace.
+
 If the sidebar appears empty, inspect whether its **Codex** section at the bottom of Explorer is collapsed. If the editor itself is blank, inspect extension/webview activation before changing layout again.
 
 ## 4. Apply local folder support

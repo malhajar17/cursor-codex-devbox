@@ -6,6 +6,14 @@ This community toolkit helps you use the Codex extension inside Cursor while wor
 
 [Get started](#get-started) · [Installation guide](docs/setup.md) · [Give this to an agent](docs/fresh-agent-prompt.md) · [Compatibility](#compatibility)
 
+## Before and after
+
+![Before: Codex is collapsed in the left sidebar. After: a full-height Codex editor pane sits beside the project files, with the src folder attached.](docs/images/before-after.png)
+
+**Before:** the demo workspace starts with Codex tucked into Explorer. **After:** Codex has its own pane beside the project files, and `src` is attached to the conversation. These are real screenshots of the same SSH demo project, with connection details and unrelated chat history hidden.
+
+[View before at full size](docs/images/before-default-layout.png) · [View after at full size](docs/images/after-configured-layout.png) · [Capture notes](docs/visuals.md)
+
 ## What does it add?
 
 | In your workflow | What this project provides |
@@ -21,11 +29,15 @@ A **devbox** is the remote computer where your code lives. Cursor runs on your o
 
 ### 1. Code on the left. Codex on the right.
 
-Open Codex in a right-hand editor group and keep Explorer available. You can work with your code and your agent in the same window.
+Open Codex in a right-hand editor group and keep Explorer available. You can work with your code and your agent in the same window. Set up this layout in each workspace; the folder patch does not move panes automatically.
 
 ### 2. Drag a folder into Codex.
 
 Drag a directory from Explorer into the Codex input. The expected result is a visible folder attachment, so you can refer to that directory in your next request. The patch passes a folder reference; it does not copy or upload the directory contents itself.
+
+![Close-up of the real src folder attachment in the demo conversation, with Codex acknowledging the folder reference.](docs/images/folder-attachment.png)
+
+*The folder reference is visible in the conversation after the demo user sends a message.*
 
 ### 3. Use the same local patch with other devboxes.
 
@@ -66,7 +78,7 @@ The scripts check the version and exact file fingerprints before applying change
 
 > **Before installing:** the local patch changes Cursor’s application files and triggers its modified/corrupt installation warning. The toolkit keeps that integrity check intact. Updates may overwrite the patch. Originals are backed up, and the guide includes restore commands.
 
-A real folder attachment was confirmed on one Linux SSH devbox during development. The final revision passed isolated multi-host tests and checks against the installed Cursor serializers; it has **not** been tested live across multiple devboxes. Read the [verification notes](docs/verification.md) for the exact scope.
+The final patch was verified in the installed Cursor bundles, and a real folder drop was confirmed on one Linux SSH devbox—the screenshots above show the result. Isolated multi-host tests and installed-serializer checks also passed. It has **not** been tested live across multiple devboxes. Read the [verification notes](docs/verification.md) for the exact scope.
 
 ## Go deeper
 
