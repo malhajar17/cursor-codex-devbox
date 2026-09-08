@@ -1,0 +1,16 @@
+I wanted Codex beside my code in Cursor while working on SSH devboxes, with a way to drag an entire folder into the conversation.
+
+I built a small open-source toolkit with Codex to make that setup repeatable.
+
+It opens Codex automatically in a full-height pane on the right and adds folder drag-and-drop from Explorer. The repository includes setup instructions, backups and rollback, plus an agent runbook so another coding agent can install it without this conversation.
+
+The screenshots show the actual workflow. We checked real folder attachments on two Linux devboxes, including a fresh session that retained the login and opened the pane automatically.
+
+This is an experimental community preview for specific Cursor and Codex versions. The folder patch modifies Cursor's application files and triggers its integrity warning; compatibility and recovery steps are documented.
+
+Code, installation guide and download:
+https://github.com/malhajar17/cursor-codex-devbox
+
+If you try it on the supported setup, I'd appreciate feedback.
+
+#Codex #Cursor #DeveloperTools #OpenSource

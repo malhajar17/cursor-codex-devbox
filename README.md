@@ -4,7 +4,9 @@
 
 This community toolkit helps you use the Codex extension inside Cursor while working on a remote development machine over SSH. It opens Codex automatically on the right, adds folder drag-and-drop for the supported Cursor build, and includes a targeted repair for one extension startup error.
 
-[Get started](#get-started) · [Installation guide](docs/setup.md) · [Give this to an agent](docs/fresh-agent-prompt.md) · [Compatibility](#compatibility)
+[Download v0.1.1](https://github.com/malhajar17/cursor-codex-devbox/releases/tag/v0.1.1) · [Installation guide](docs/setup.md) · [Give this to an agent](docs/fresh-agent-prompt.md) · [Compatibility](#compatibility)
+
+**Experimental preview · MIT licensed · macOS Cursor 3.18.25 + Linux x64 SSH devboxes.** Check the version table below before installing.
 
 ## Before and after
 
@@ -37,9 +39,9 @@ Close the pane whenever you want; it stays closed for that window session. Click
 
 Drag a directory from Explorer into the Codex input. The expected result is a visible folder attachment, so you can refer to that directory in your next request. The patch passes a folder reference; it does not copy or upload the directory contents itself.
 
-![Close-up of the real src folder attachment in the demo conversation, with Codex acknowledging the folder reference.](docs/images/folder-attachment.png)
+![The src directory appears as a Folder attachment in the actual Codex composer on a second SSH devbox.](docs/images/folder-in-composer.png)
 
-*The folder reference is visible in the conversation after the demo user sends a message.*
+*A real folder drop in a fresh SSH window. Codex opened automatically, reused the saved login, and displayed the attachment without sending a message.*
 
 ### 3. Use the same local patch with other devboxes.
 
@@ -53,6 +55,8 @@ flowchart LR
 Install the companion and apply the folder patch once per Cursor installation. Each devbox still needs a working Codex extension. Add `openai.chatgpt` to Cursor's `remote.SSH.defaultExtensions` setting to install it on SSH hosts automatically; [the guide explains sign-in and compatibility checks](docs/setup.md#setup-on-each-ssh-devbox). A drop belongs to the current connection; this is not a tool for moving folders between servers.
 
 ## Get started
+
+**Want the automatic pane?** Download `cursor-codex-pane-0.1.1.vsix` from the [release page](https://github.com/malhajar17/cursor-codex-devbox/releases/tag/v0.1.1). In a local Cursor window, run **Extensions: Install from VSIX** and select it. Install the official Codex extension on your devbox, then reload the window once. The [setup guide](docs/setup.md) covers folder dragging and the optional startup repair separately.
 
 **Using a coding agent?** Give it the [ready-to-copy setup prompt](docs/fresh-agent-prompt.md) and access to this repository. It will start with [AGENTS.md](AGENTS.md) and the [step-by-step runbook](docs/agent-runbook.md). No previous conversation is needed.
 
@@ -81,7 +85,7 @@ The patch scripts check the version and exact file fingerprints before applying 
 
 > **Before installing:** the local patch changes Cursor’s application files and triggers its modified/corrupt installation warning. The toolkit keeps that integrity check intact. Updates may overwrite the patch. Originals are backed up, and the guide includes restore commands.
 
-The final folder patch was verified in the installed Cursor bundles, and a real folder drop was confirmed on one Linux SSH devbox—the screenshots above show the result. Isolated multi-host tests and installed-serializer checks also passed. Automatic pane opening was additionally checked on a second SSH devbox up to its sign-in screen; folder dropping has **not** been tested live across multiple devboxes. Read the [verification notes](docs/verification.md) for the exact scope.
+The final folder patch was verified in the installed Cursor bundles, and real folder drops were confirmed on **two Linux SSH devboxes**. A fresh window on the second host opened Codex on the right, retained its login, and displayed a folder attachment without a submitted prompt. Automated tests and installed-serializer checks also passed. Read the [verification notes](docs/verification.md) for the exact scope.
 
 ## Go deeper
 
@@ -89,5 +93,11 @@ The final folder patch was verified in the installed Cursor bundles, and a real 
 - [Agent runbook](docs/agent-runbook.md) — diagnosis, implementation details, and recovery.
 - [Fresh-agent prompt](docs/fresh-agent-prompt.md) — hand this project to another agent.
 - [Development and tests](docs/development.md) — run the checks or work on a new profile.
+- [Release notes](CHANGELOG.md) — what is included in the downloadable preview.
+- [Share the project](docs/social/README.md) — portrait slides and a LinkedIn post draft.
+
+## License
+
+The authored toolkit is available under the [MIT License](LICENSE). Cursor and the official Codex extension retain their own licenses; their application bundles are not distributed here.
 
 Found an unsupported version or a reproducible issue? [Open an issue](https://github.com/malhajar17/cursor-codex-devbox/issues) with your OS, versions, and a redacted error. Keep credentials, SSH configuration, and private project details out of reports.

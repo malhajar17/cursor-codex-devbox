@@ -87,7 +87,13 @@ Keep callback URLs, temporary codes, and saved credentials out of issues and log
 
 ## Automatic Codex pane on the right
 
-Build and install the companion **on the computer running Cursor**:
+Download `cursor-codex-pane-0.1.1.vsix` from [release v0.1.1](https://github.com/malhajar17/cursor-codex-devbox/releases/tag/v0.1.1). Install it **on the computer running Cursor**, using **Extensions: Install from VSIX** in a local window or:
+
+```sh
+cursor --install-extension /path/to/cursor-codex-pane-0.1.1.vsix
+```
+
+The release includes `SHA256SUMS` for checking downloads. To build the same companion from source:
 
 ```sh
 python3 scripts/package_companion.py

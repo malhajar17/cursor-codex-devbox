@@ -32,6 +32,12 @@ Browser sign-in on the second devbox initially failed because a different SSH wi
 
 The [setup guide](setup.md#sign-in-returns-to-localhost-and-fails) now explains the conflict and device code authentication as an alternative. Device code login is documented by OpenAI and available in the installed CLI's help, but was not exercised in this check. The companion does not automatically resolve port collisions. Authentication on this second host does not establish a live folder-drop test there.
 
-Not established: current support in other Cursor versions; a live Windows devbox; a live macOS remote host; live folder dropping across multiple SSH devboxes; compatibility with future Codex webview message contracts; native Cursor agent-tab integration; persistence across application updates. A profile mismatch is an unsupported build, not a reason to force the patch.
+## Complete fresh session — 8 September 2026
+
+Before the public preview, a new harmless demo workspace was opened on the second Linux SSH devbox through Cursor's ordinary folder-opening CLI. No Codex command was invoked. The captured window showed the automatically opened full-height right pane and a signed-in composer using the saved login. The user then dragged `src` from Explorer and explicitly confirmed the attachment. A second capture showed `src` labeled **Folder** in the composer; no prompt was submitted. See the [redacted fresh-session capture](images/fresh-session-verified.png) and [composer detail](images/folder-in-composer.png).
+
+This completes a live check of automatic opening, retained authentication, and folder attachment in one fresh session on the second host. Together with the first-host demo, folder dropping has now been confirmed on two Linux SSH devboxes. This does not establish support for every host or version. The 12 Python tests, 22 companion cases, both Node patch suites, and read-only installed Cursor/serializer checks passed again for the release. A repository-history scan found none of the known private connection details or credential patterns; published screenshots were also reviewed visually.
+
+Not established: current support in other Cursor versions; a live Windows devbox; a live macOS remote host; compatibility with future Codex webview message contracts; native Cursor agent-tab integration; persistence across application updates. A profile mismatch is an unsupported build, not a reason to force the patch.
 
 No proprietary application bundles or user environment logs are included. Tests use authored fixtures and patch snippets. Optional installed-serializer verification reads the user's own installation without copying it into Git.
