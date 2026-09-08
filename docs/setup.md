@@ -63,6 +63,28 @@ The extension is commonly under `~/.cursor-server/extensions/`, but discover it 
 
 The startup repair and local folder-drag patch are independent. Restoring one does not restore the other. An extension update may remove the startup repair or make it unnecessary.
 
+### Sign-in returns to localhost and fails
+
+The browser runs on your computer, while Codex's sign-in server runs on the devbox. The browser callback uses `localhost:1455`, so that local port must forward to the devbox where you started sign-in.
+
+With multiple SSH windows open, another devbox can already own local port 1455. Cursor may then assign a different local port to the current devbox, while the browser still returns to 1455. This is a forwarding conflict, not a pane-layout problem.
+
+1. Check the port forwarding for the **SSH window where you started sign-in**. Find its remote port 1455 and the assigned local port.
+2. If that mapping uses another local port, change only the port in the failed browser callback's address to that verified local port and retry once. Keep its path and query unchanged. Do not guess the port or use a mapping for another devbox. If the login has expired, start sign-in again after correcting the forwarding.
+3. Confirm the result in Codex, or run `codex login status` on that same devbox. A successful callback page alone does not verify which host is signed in.
+
+For a new login, stop an unused port-1455 forward in the other SSH window before starting, then ensure the intended window forwards local 1455 to remote 1455. Another option is **device code authentication**, which avoids the localhost callback:
+
+```sh
+# Run on the devbox you want to sign in to.
+codex login --device-auth
+codex login status
+```
+
+If `codex` is not on PATH, use the Codex binary bundled with that devbox's installed extension. Device code login must be enabled in your ChatGPT security settings or workspace permissions; complete the browser step yourself. The CLI and extension share the login cache for the same user and Codex home, so ordinary later sessions can reuse it. See the [official authentication guide](https://learn.chatgpt.com/docs/auth#login-on-headless-devices).
+
+Keep callback URLs, temporary codes, and saved credentials out of issues and logs. Report the local-to-remote port mapping and error instead. The companion does not manage authentication or port forwarding.
+
 ## Automatic Codex pane on the right
 
 Build and install the companion **on the computer running Cursor**:

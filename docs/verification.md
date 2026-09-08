@@ -26,6 +26,12 @@ Companion 0.1.1 also fixes a click during startup cancelling the automatic wait.
 
 The final installed version was checked in a new harmless workspace on this second host. A real screenshot showed a blank code editor on the left and the Codex sign-in screen on the right. Sign-in remained a user action; no credentials were copied and no model prompt was submitted. This establishes extension activation and automatic layout on the second host, **not** a second live folder-drop check or a completed authenticated conversation there. All 22 companion cases, the 12 Python patcher tests, and both existing Node patch suites passed.
 
-Not established: current support in other Cursor versions; a live Windows devbox; a live macOS remote host; multiple live SSH devboxes; compatibility with future Codex webview message contracts; native Cursor agent-tab integration; persistence across application updates. A profile mismatch is an unsupported build, not a reason to force the patch.
+## SSH sign-in forwarding — 8 September 2026
+
+Browser sign-in on the second devbox initially failed because a different SSH window owned local port 1455. The intended window's tunnel log showed an address-in-use error and an alternate local port forwarding to its remote callback server. The SSH authorities and remote listener were checked before recovery. With explicit user permission, the supplied callback was routed once through the verified tunnel; the intended devbox's `codex login status` then reported **Logged in using ChatGPT**. No saved credentials were copied between hosts and no model prompt was submitted.
+
+The [setup guide](setup.md#sign-in-returns-to-localhost-and-fails) now explains the conflict and device code authentication as an alternative. Device code login is documented by OpenAI and available in the installed CLI's help, but was not exercised in this check. The companion does not automatically resolve port collisions. Authentication on this second host does not establish a live folder-drop test there.
+
+Not established: current support in other Cursor versions; a live Windows devbox; a live macOS remote host; live folder dropping across multiple SSH devboxes; compatibility with future Codex webview message contracts; native Cursor agent-tab integration; persistence across application updates. A profile mismatch is an unsupported build, not a reason to force the patch.
 
 No proprietary application bundles or user environment logs are included. Tests use authored fixtures and patch snippets. Optional installed-serializer verification reads the user's own installation without copying it into Git.
