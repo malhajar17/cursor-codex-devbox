@@ -31,6 +31,16 @@ Reload again after restoring. Use the same application root, profile, and backup
 
 ## Setup on each SSH devbox
 
+**The pane companion is not the Codex agent itself.** A fresh devbox needs the official Codex extension too. To have Cursor install it when connecting to SSH hosts, add this to your **local user settings**, merging it with any existing list:
+
+```json
+{
+  "remote.SSH.defaultExtensions": ["openai.chatgpt"]
+}
+```
+
+This setting is provided by Cursor's Remote SSH extension. It installs the official extension; it does not copy your authentication or apply compatibility repairs. Each host may require its own sign-in. If the extension cannot activate, follow the diagnosis below. See the [official Codex installation guide](https://learn.chatgpt.com/docs/codex/ide) for installation and sign-in.
+
 1. Connect using Cursor's Remote SSH extension and your existing SSH configuration.
 2. Install the official Codex extension (`openai.chatgpt`) in that SSH environment, then open Codex.
 3. If it activates normally, skip the startup repair. If commands fail, inspect the remote extension-host log before changing anything.
@@ -59,14 +69,16 @@ Build and install the companion **on the computer running Cursor**:
 
 ```sh
 python3 scripts/package_companion.py
-cursor --install-extension dist/cursor-codex-pane-0.1.0.vsix
+cursor --install-extension dist/cursor-codex-pane-0.1.1.vsix
 ```
 
 If `cursor` is not on PATH on macOS, use `/Applications/Cursor.app/Contents/Resources/app/bin/cursor` (quote the full path). You can also use **Extensions: Install from VSIX** in a local Cursor window and select the generated file. Install **Codex Pane for Cursor** locally, not in an SSH extension environment.
 
-Reopen a project or reload its window once after installing. From then on, opening a trusted folder or workspace opens Codex on the right automatically. The helper waits up to two minutes for the remote Codex commands and restored tabs, then reuses an existing Codex conversation if available. It does not send a prompt. If Codex is unavailable or takes longer to connect, click **Codex** in the status bar after it is ready.
+Reopen a project or reload its window once after installing. From then on, opening a trusted folder or workspace opens Codex on the right automatically. The helper waits up to two minutes for the remote Codex commands and restored tabs, then reuses an existing Codex conversation if available. It does not send a prompt. Clicking **Codex connecting** while it is waiting joins the same startup attempt; it does not cancel it or create another tab.
 
-It hides Cursor's separate Agents pane and the bottom panel to give Codex the full height. Existing chats and terminal sessions are retained. Existing editor groups are preserved; a full-height rightmost group is reused, or a right-hand group is added beside a stacked layout. It does not flatten complex layouts.
+If the status changes to **Codex setup**, check that the official `openai.chatgpt` extension is installed and enabled **in that SSH workspace**. The local companion alone is insufficient. If installed, inspect activation errors and use the matching startup repair only when needed. After installing or repairing the official extension, reload the existing window once. A manual open waits for startup too; if it times out, its notification offers **Open Extensions** and **Reload Window** instead of an immediate ambiguous error.
+
+It hides Cursor's separate Agents pane before choosing an editor group, then hides the bottom panel to give Codex the full height. Existing chats and terminal sessions are retained. Existing editor groups are preserved; a full-height rightmost group is reused, or a right-hand group is added beside a stacked layout. It does not flatten complex layouts. When no code is open, it leaves a clean untitled editor on the left so Cursor does not collapse the empty group. No file is written to disk.
 
 Closing Codex keeps it closed until that window reloads. The status bar button brings it back with one click. Change these settings in Cursor's user settings to control all its workspaces, or in workspace settings for one project:
 

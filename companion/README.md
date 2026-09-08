@@ -4,6 +4,12 @@ Install this small local extension to open Codex automatically on the right when
 
 This is a community companion, not the official Codex extension. Install the official `openai.chatgpt` extension separately in each environment where you use it.
 
+For new SSH hosts, add `"remote.SSH.defaultExtensions": ["openai.chatgpt"]` to Cursor's local user settings, preserving other entries. This installs the official extension automatically; sign-in and any runtime compatibility repair still belong to each host.
+
+Version 0.1.1 waits when you click during connection instead of cancelling automatic startup. The status bar shows **Codex connecting** while waiting and **Codex setup** if the agent never becomes ready. In that case, check installation and activation in the current SSH workspace, then reload after making repairs.
+
+In an otherwise empty workspace, a clean untitled editor keeps the left code area open beside Codex. It does not create a disk file. Existing code tabs are retained.
+
 ## Settings
 
 - `cursorCodex.autoOpen`: open once at startup (default `true`).
@@ -16,7 +22,7 @@ Build and install from the repository root:
 
 ```sh
 python3 scripts/package_companion.py
-cursor --install-extension dist/cursor-codex-pane-0.1.0.vsix
+cursor --install-extension dist/cursor-codex-pane-0.1.1.vsix
 ```
 
 Install locally, not through an SSH terminal. Reopen a project or reload its window once after installation. Thereafter it opens automatically. To undo, disable/uninstall **Codex Pane for Cursor** in local Extensions, or run `cursor --uninstall-extension malhajar17.cursor-codex-pane`. Uninstalling does not rearrange existing tabs.

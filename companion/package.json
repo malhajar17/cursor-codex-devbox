@@ -2,7 +2,7 @@
   "name": "cursor-codex-pane",
   "displayName": "Codex Pane for Cursor",
   "description": "Open Codex automatically in a right-hand editor group, including SSH workspaces.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "malhajar17",
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/malhajar17/cursor-codex-devbox.git" },

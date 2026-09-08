@@ -3,6 +3,13 @@
 const VIEW = 'chatgpt.conversationEditor';
 const READY_COMMAND = 'chatgpt.newCodexPanel';
 
+class CodexUnavailableError extends Error {
+  constructor() {
+    super('Codex did not start in this workspace. Install or enable the official Codex extension in this SSH workspace, then reload the window. If it is already installed, check its extension activation log.');
+    this.code = 'CODEX_UNAVAILABLE';
+  }
+}
+
 function codexTabs(groups) {
   return groups.flatMap(group => group.tabs.map(tab => ({ group, tab })))
     .filter(({ tab }) => tab.input?.uri?.scheme === 'openai-codex' &&
@@ -44,26 +51,42 @@ function createPane(vscode, log, options = {}) {
   let disposed = false;
   let handled = false;
   let running;
+  let manualRequested = false;
   let tabsChangedAt = now();
   const tabsListener = vscode.window.tabGroups.onDidChangeTabs(() => { tabsChangedAt = now(); });
   const config = () => vscode.workspace.getConfiguration('cursorCodex');
   const enabled = () => vscode.workspace.isTrusted && !!vscode.workspace.workspaceFolders?.length;
+  const state = value => { if (!disposed) options.onState?.(value); };
+
+  async function waitForLayout(predicate) {
+    for (let attempt = 0; attempt < 40 && !disposed; attempt++) {
+      if (predicate()) return true;
+      await delay(50);
+    }
+    return false;
+  }
 
   async function ready(automatic) {
     const deadline = now() + (options.timeout ?? 120000);
     while (!disposed && now() < deadline) {
-      if (!enabled() || (automatic && (handled || !config().get('autoOpen', true)))) return false;
+      if (!enabled() || (automatic && !manualRequested && !config().get('autoOpen', true))) return 'cancelled';
       const commands = await vscode.commands.getCommands(true);
-      if (commands.includes(READY_COMMAND) && now() - tabsChangedAt >= (options.settle ?? 2000)) return true;
+      if (commands.includes(READY_COMMAND) && now() - tabsChangedAt >= (options.settle ?? 2000)) return 'ready';
       await delay(options.poll ?? 1000);
     }
-    return false;
+    return disposed ? 'cancelled' : 'timeout';
   }
 
   async function place(automatic) {
     if (disposed || !enabled()) return;
     const commands = await vscode.commands.getCommands(true);
-    if (!commands.includes(READY_COMMAND)) throw new Error('Codex is still connecting or is not installed in this workspace.');
+    if (!commands.includes(READY_COMMAND)) throw new CodexUnavailableError();
+
+    // Cursor can implement Agents as an editor group. Hide it before choosing
+    // a target, otherwise its close command can remove Codex's new group too.
+    if (config().get('hideCursorAgents', true) && commands.includes('aichat.close-sidebar')) {
+      await vscode.commands.executeCommand('aichat.close-sidebar');
+    }
 
     // The URI is the same new-agent route used by the verified Codex extension.
     // Opening a custom editor does not submit a prompt or start a model request.
@@ -77,33 +100,67 @@ function createPane(vscode, log, options = {}) {
     }
     const uri = selected?.tab.input.uri ?? vscode.Uri.from({ scheme: 'openai-codex', authority: 'route', path: '/extension/panel/new' });
     if (disposed) return;
+    const first = vscode.window.tabGroups.all.find(group => group.viewColumn === 1);
+    if (first && first.tabs.every(tab => tab === selected?.tab) && selected?.group.viewColumn !== target.column) {
+      // Cursor collapses an empty editor group when a custom editor opens.
+      // A clean untitled preview keeps a place for code; no disk file is made.
+      const document = await vscode.workspace.openTextDocument({ language: 'plaintext' });
+      await vscode.window.showTextDocument(document, { viewColumn: 1, preserveFocus: true, preview: true });
+    }
     if (target.layout) await vscode.commands.executeCommand('vscode.setEditorLayout', target.layout);
+    // Cursor's set-layout command returns before tab-group notifications arrive.
+    if (!await waitForLayout(() => vscode.window.tabGroups.all.some(group => group.viewColumn === target.column))) {
+      if (disposed) return;
+      throw new Error('Cursor did not create the right-hand editor group. Reload the window and try again.');
+    }
+    // Fresh custom editors can follow the active group in Cursor. Select the
+    // target explicitly; it is always the full-height last group in our plan.
+    await vscode.commands.executeCommand('workbench.action.focusLastEditorGroup');
     await vscode.commands.executeCommand('vscode.openWith', uri, VIEW, {
       viewColumn: target.column, preserveFocus: automatic, preview: false
     });
     if (disposed) return;
-    if (config().get('hideCursorAgents', true) && commands.includes('aichat.close-sidebar')) {
-      await vscode.commands.executeCommand('aichat.close-sidebar');
-    }
     if (config().get('fullHeight', true) && commands.includes('workbench.action.closePanel')) {
       await vscode.commands.executeCommand('workbench.action.closePanel');
+    }
+    if (!await waitForLayout(() => codexTabs(vscode.window.tabGroups.all).some(({ group, tab }) =>
+      group.viewColumn === target.column && tab.input.uri.toString() === uri.toString()))) {
+      if (disposed) return;
+      throw new Error('Codex opened, but Cursor did not keep it in the right-hand editor group.');
     }
     log.info(`${selected ? 'Reused' : 'Opened'} Codex in editor column ${target.column}.`);
   }
 
   function open(automatic = false) {
+    if (!automatic) manualRequested = true;
     if (running) return running;
-    handled = true;
-    running = place(automatic).finally(() => { running = undefined; });
+    running = (async () => {
+      if (!enabled() || disposed) return;
+      state('waiting');
+      const result = await ready(automatic);
+      if (result === 'cancelled') { state('idle'); return; }
+      if (result === 'timeout') throw new CodexUnavailableError();
+      await place(automatic && !manualRequested);
+      if (!disposed) {
+        handled = true;
+        state('ready');
+      }
+    })().catch(error => {
+      state(error.code === 'CODEX_UNAVAILABLE' ? 'unavailable' : 'error');
+      throw error;
+    }).finally(() => { running = undefined; manualRequested = false; });
     return running;
   }
 
   return {
     async start() {
-      if (!enabled() || !config().get('autoOpen', true)) return;
+      if (handled || !enabled() || !config().get('autoOpen', true)) return;
       log.info('Waiting for Codex and restored editor tabs.');
-      if (await ready(true)) await open(true);
-      else if (!disposed && !handled) log.info('Automatic opening skipped. Use the Codex status bar button after connecting.');
+      try { await open(true); }
+      catch (error) {
+        if (error.code !== 'CODEX_UNAVAILABLE') throw error;
+        log.info('Codex commands unavailable after waiting. Check the official extension in this workspace; the pane companion alone is not Codex.');
+      }
     },
     open,
     dispose() { disposed = true; tabsListener.dispose(); }

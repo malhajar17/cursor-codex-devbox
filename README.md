@@ -50,7 +50,7 @@ flowchart LR
     C -->|SSH window B| B["Devbox B<br/>Code + Codex extension"]
 ```
 
-Install the companion and apply the folder patch once per Cursor installation. Each devbox still needs a working Codex extension. A drop belongs to the current connection; this is not a tool for moving folders between servers.
+Install the companion and apply the folder patch once per Cursor installation. Each devbox still needs a working Codex extension. Add `openai.chatgpt` to Cursor's `remote.SSH.defaultExtensions` setting to install it on SSH hosts automatically; [the guide explains sign-in and compatibility checks](docs/setup.md#setup-on-each-ssh-devbox). A drop belongs to the current connection; this is not a tool for moving folders between servers.
 
 ## Get started
 
@@ -72,7 +72,7 @@ The guide includes exact commands, backups, troubleshooting, and rollback. The o
 | Component | Supported profile |
 | --- | --- |
 | Cursor client | macOS, **3.18.25** |
-| Automatic pane companion | **0.1.0**, tested with Cursor **3.18.25** and Codex **26.901.22334** |
+| Automatic pane companion | **0.1.1**, tested with Cursor **3.18.25** and Codex **26.901.22334** |
 | Optional Codex startup repair | **26.901.22334**, Linux x64 extension package |
 | Remote runtime observed with the startup error | Node **22.22.1** |
 | Toolkit requirements | Python **3.10+** and Node.js **22+**; no package installation |
@@ -81,7 +81,7 @@ The patch scripts check the version and exact file fingerprints before applying 
 
 > **Before installing:** the local patch changes Cursor’s application files and triggers its modified/corrupt installation warning. The toolkit keeps that integrity check intact. Updates may overwrite the patch. Originals are backed up, and the guide includes restore commands.
 
-The final patch was verified in the installed Cursor bundles, and a real folder drop was confirmed on one Linux SSH devbox—the screenshots above show the result. Isolated multi-host tests and installed-serializer checks also passed. It has **not** been tested live across multiple devboxes. Read the [verification notes](docs/verification.md) for the exact scope.
+The final folder patch was verified in the installed Cursor bundles, and a real folder drop was confirmed on one Linux SSH devbox—the screenshots above show the result. Isolated multi-host tests and installed-serializer checks also passed. Automatic pane opening was additionally checked on a second SSH devbox up to its sign-in screen; folder dropping has **not** been tested live across multiple devboxes. Read the [verification notes](docs/verification.md) for the exact scope.
 
 ## Go deeper
 

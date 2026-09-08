@@ -5,7 +5,7 @@ const { createPane, rightLayout, VIEW } = require('../companion/pane.cjs');
 
 function fixture(options = {}) {
   let clock = 0, listener, disposed = false;
-  const calls = [], logs = [], settings = { ...options.settings };
+  const calls = [], logs = [], states = [], documents = [], settings = { ...options.settings };
   const groups = options.groups ?? [{ viewColumn: 1, tabs: [] }];
   const readyCommands = ['chatgpt.newCodexPanel', 'aichat.close-sidebar', 'workbench.action.closePanel'];
   const vscode = {
@@ -13,17 +13,27 @@ function fixture(options = {}) {
     workspace: {
       isTrusted: options.trusted ?? true,
       workspaceFolders: options.folders ?? [{}],
-      getConfiguration: () => ({ get: (key, fallback) => settings[key] ?? fallback })
+      getConfiguration: () => ({ get: (key, fallback) => settings[key] ?? fallback }),
+      async openTextDocument(options) { const doc = { options, uri: { scheme: 'untitled', path: '/Untitled-1' } }; documents.push(doc); return doc; }
     },
-    window: { tabGroups: { all: groups, onDidChangeTabs(fn) { listener = fn; return { dispose() { disposed = true; } }; } } },
+    window: {
+      tabGroups: { all: groups, onDidChangeTabs(fn) { listener = fn; return { dispose() { disposed = true; } }; } },
+      async showTextDocument(document, options) { groups.find(g => g.viewColumn === options.viewColumn).tabs.push({ input: { uri: document.uri } }); }
+    },
     commands: {
       async getCommands() { return options.available === false || clock < (options.readyAt ?? 0) ? [] : readyCommands; },
       async executeCommand(command, ...args) {
         calls.push([command, ...args]);
+        await options.onCommand?.(command, options);
         if (command === 'vscode.getEditorLayout') return options.layout ?? { orientation: 0, groups: [{}] };
+        if (command === 'vscode.setEditorLayout') {
+          const count = node => node.groups?.length ? node.groups.reduce((sum, group) => sum + count(group), 0) : 1;
+          for (let i = groups.length; i < count(args[0]); i++) groups.push({ viewColumn: i + 1, tabs: [] });
+        }
         if (command === 'vscode.openWith') {
           await options.onOpen?.();
-          const group = groups.find(g => g.viewColumn === args[2].viewColumn) ?? { viewColumn: args[2].viewColumn, tabs: [] };
+          const column = options.wrongColumn ?? args[2].viewColumn;
+          const group = groups.find(g => g.viewColumn === column) ?? { viewColumn: column, tabs: [] };
           if (!groups.includes(group)) groups.push(group);
           for (const old of groups) old.tabs = old.tabs.filter(tab => tab.input?.uri !== args[0]);
           group.tabs.push({ isActive: true, input: { uri: args[0], viewType: VIEW } });
@@ -32,10 +42,10 @@ function fixture(options = {}) {
     }
   };
   const pane = createPane(vscode, { info: message => logs.push(message) }, {
-    now: () => clock, settle: 20, poll: 10, timeout: 100,
+    now: () => clock, settle: 20, poll: 10, timeout: 100, onState: state => states.push(state),
     async delay(ms) { clock += ms; await options.onTick?.({ clock, groups, settings, changeTabs: () => listener() }); }
   });
-  return { pane, calls, groups, settings, logs, vscode, isDisposed: () => disposed,
+  return { pane, calls, groups, settings, logs, states, documents, vscode, isDisposed: () => disposed,
     opens: () => calls.filter(([command]) => command === 'vscode.openWith') };
 }
 
@@ -48,7 +58,7 @@ test('waits for remote Codex; opens once and does not submit a prompt', async ()
   assert.equal(f.opens().length, 1);
   assert.equal(f.opens()[0][1].path, '/extension/panel/new');
   assert.deepEqual(f.opens()[0][3], { viewColumn: 2, preserveFocus: true, preview: false });
-  assert.deepEqual(f.calls.map(c => c[0]), ['vscode.getEditorLayout', 'vscode.setEditorLayout', 'vscode.openWith', 'aichat.close-sidebar', 'workbench.action.closePanel']);
+  assert.deepEqual(f.calls.map(c => c[0]), ['aichat.close-sidebar', 'vscode.getEditorLayout', 'vscode.setEditorLayout', 'workbench.action.focusLastEditorGroup', 'vscode.openWith', 'workbench.action.closePanel']);
 });
 
 test('waits for restored tabs and reuses their exact conversation URI', async () => {
@@ -95,7 +105,8 @@ test('missing Codex has a bounded wait without layout changes', async () => {
   const f = fixture({ available: false });
   await f.pane.start();
   assert.equal(f.calls.length, 0);
-  await assert.rejects(f.pane.open(), /still connecting/);
+  await assert.rejects(f.pane.open(), error => error.code === 'CODEX_UNAVAILABLE');
+  assert.equal(f.states.at(-1), 'unavailable');
 });
 
 test('disabled startup, welcome windows and untrusted projects are skipped', async () => {
@@ -125,10 +136,73 @@ test('concurrent button clicks create only one editor', async () => {
   assert.equal(f.opens().length, 1);
 });
 
+test('clicking during automatic startup joins its wait instead of cancelling it', async () => {
+  let clicked;
+  const f = fixture({ readyAt: 60, onTick({ clock }) {
+    if (clock === 10) clicked = f.pane.open();
+  } });
+  await f.pane.start();
+  await clicked;
+  assert.equal(f.opens().length, 1);
+  assert.equal(f.opens()[0][3].preserveFocus, false);
+  assert.deepEqual(f.states, ['waiting', 'ready']);
+});
+
+test('a manual open waits for a slow remote extension even with automatic startup off', async () => {
+  const f = fixture({ readyAt: 70, settings: { autoOpen: false } });
+  await f.pane.open();
+  assert.equal(f.opens().length, 1);
+  assert.equal(f.states.at(-1), 'ready');
+});
+
+test('a failed attempt does not prevent opening after the extension is installed', async () => {
+  const options = { available: false };
+  const f = fixture(options);
+  await f.pane.start();
+  options.available = true;
+  await f.pane.open();
+  assert.equal(f.opens().length, 1);
+  assert.equal(f.states.at(-1), 'ready');
+});
+
 test('respects settings that keep Agents and the bottom panel visible', async () => {
   const f = fixture({ settings: { hideCursorAgents: false, fullHeight: false } });
   await f.pane.start();
   assert.ok(!f.calls.some(c => c[0].includes('close')));
+});
+
+test('hides Cursor Agents before choosing a group that its close command could remove', async () => {
+  const f = fixture({ layout: { orientation: 0, groups: [{}, {}] }, onCommand(command, options) {
+    if (command === 'aichat.close-sidebar') options.layout = { orientation: 0, groups: [{}] };
+  } });
+  await f.pane.start();
+  assert.equal(f.opens()[0][3].viewColumn, 2);
+  assert.ok(f.calls.some(c => c[0] === 'vscode.setEditorLayout'));
+  assert.ok(f.calls.findIndex(c => c[0] === 'aichat.close-sidebar') < f.calls.findIndex(c => c[0] === 'vscode.getEditorLayout'));
+});
+
+test('an empty workspace retains a clean blank editor to the left of Codex', async () => {
+  const f = fixture();
+  await f.pane.start();
+  assert.equal(f.documents.length, 1);
+  assert.deepEqual(f.documents[0].options, { language: 'plaintext' });
+  assert.equal(f.groups[0].tabs[0].input.uri.scheme, 'untitled');
+  assert.equal(f.groups[1].tabs[0].input.uri.scheme, 'openai-codex');
+});
+
+test('does not add a blank editor when the user already has code open', async () => {
+  const code = { input: { uri: { scheme: 'vscode-remote', path: '/project/main.py' } } };
+  const f = fixture({ groups: [{ viewColumn: 1, tabs: [code] }] });
+  await f.pane.start();
+  assert.equal(f.documents.length, 0);
+  assert.equal(f.groups[0].tabs[0], code);
+});
+
+test('does not report success when Cursor places Codex in the wrong group', async () => {
+  const f = fixture({ wrongColumn: 1 });
+  await assert.rejects(f.pane.start(), /did not keep it/);
+  assert.equal(f.states.at(-1), 'error');
+  assert.ok(!f.logs.some(message => message.startsWith('Opened')));
 });
 
 test('does not replace a legacy webview conversation', async () => {

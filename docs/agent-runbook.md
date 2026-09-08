@@ -10,7 +10,7 @@ Read Cursor's `package.json`, the installed Codex extension's `package.json`, an
 
 ## 2. Get the official extension working
 
-Install or locate `openai.chatgpt` in the SSH extension environment. Let the user complete authentication through the extension's normal UI. Do not infer success from a command appearing in the palette.
+Install or locate `openai.chatgpt` in the SSH extension environment. The local pane companion does not provide the official agent: inspect this separately on every new host. For a user requesting setup across devboxes, merge `openai.chatgpt` into local `remote.SSH.defaultExtensions` so Cursor installs it on SSH hosts. Preserve existing entries. This does not propagate authentication or apply startup repairs. Let the user complete authentication through the extension's normal UI. Do not infer success from a command appearing in the palette.
 
 If **Codex: Open Codex Sidebar** fails with `command 'chatgpt.openSidebar' not found`, inspect activation logs. In the observed baseline, `remoteexthost.log` reported a syntax error caused by `using p=n(u)`, which the bundled remote Node 22 runtime could not parse. This prevented command registration.
 
@@ -29,6 +29,12 @@ Build the companion with `python3 scripts/package_companion.py`, then install it
 The companion waits for `chatgpt.newCodexPanel` registration and two seconds without tab changes. It uses the verified `openai-codex://route/extension/panel/new` custom-editor route and `chatgpt.conversationEditor` view, or reuses an existing Codex tab's exact URI. It opens with `vscode.openWith` in a full-height rightmost group, preserving the existing layout tree. It hides other panes through idempotent close commands, not visibility toggles. No prompt is sent. The built-in `chatgpt.openOnStartup` setting targets the sidebar and is not the equivalent behavior.
 
 Startup runs once per trusted workspace session, with a two-minute connection limit. Closing the pane does not trigger a reopening loop. A **Codex** status bar button invokes `cursorCodex.openOnRight` on demand. Settings allow auto-opening, hiding Cursor Agents, and hiding the bottom panel to be disabled independently. The **Codex Pane for Cursor** Output channel records only local setup diagnostics.
+
+In 0.1.1, a manual click joins the running startup wait and requests focus once ready. It never marks startup handled before opening succeeds. A timeout shows **Codex setup**; manual failures offer extension management and reload actions. Do not diagnose an absent command as a slow connection alone: a different devbox may have no Codex installation. After a CLI install or bundle repair, an already-running remote extension host may need one reload to discover it.
+
+Fresh windows also need a real left-hand editor: Cursor can collapse an empty group after opening a custom editor. The companion adds a clean untitled preview only when the left group is empty or its only tab is the Codex editor being moved. Existing code tabs are not replaced. Hide native Agents before planning the layout, because some Cursor modes implement them as an editor group.
+
+The set-layout command can return before tab-group notifications arrive. Wait for the destination group, focus it explicitly, then open the custom editor and verify its actual column. A successful `vscode.openWith` return is insufficient. When capturing an offscreen macOS window, focus the exact demo through Cursor's CLI first if the capture shows stale or incomplete content; do not confuse a cached frame with current layout state.
 
 Verify a fresh harmless SSH workspace without invoking a Codex command, then verify an existing conversation is retained. Do not infer visible success from the helper's log alone. If porting to a new extension build, check its command registration, new-editor URI, custom-editor view type, and single-editor behavior before claiming compatibility. Public API references: [remote UI extensions](https://code.visualstudio.com/api/advanced-topics/remote-extensions) and [editor commands](https://code.visualstudio.com/api/references/commands).
 
